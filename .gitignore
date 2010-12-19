@@ -1,0 +1,16 @@
+*~
+.#*
+## the next line needs to start with a backslash to avoid looking like
+## a comment
+\#*#
+*.pyc
+*.pyo
+.*.swp
+TAGS
+pip-log.txt
+.DS_Store
+/develop-eggs
+/*.egg-info
+/dist
+/build
+
