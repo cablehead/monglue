@@ -7,6 +7,11 @@ from pymongo.objectid import ObjectId
 from monglue.document import Document, Required, Optional, ValidationError
 
 def test_init():
+    # At some point I will want to assert that class attributes from the
+    # document definition aren't present after init. For now I'll just hope no
+    # one will choose field names from ['clear', 'copy', 'fromkeys', 'get',
+    # 'has_key', 'items', 'iteritems', 'iterkeys', 'itervalues', 'keys', 'pop',
+    # 'popitem', 'setdefault', 'update', 'values']
     raise nose.SkipTest()
 
 @nose.with_setup(fudge.clear_expectations)
@@ -28,25 +33,71 @@ def test_required():
         )
 
 def test_optional():
-    raise nose.SkipTest()
+    class MyDoc(Document):
+        opt_field = Optional()
+
+    fake_coll = fudge.Fake('coll').expects('save').with_args(
+        {'other_field': 'this is not happiness'},
+        ).returns(ObjectId())
+    doc = MyDoc({'other_field':'this is not happiness'}, collection=fake_coll)
+    doc.save()
 
 @nose.with_setup(fudge.clear_expectations)
 @fudge.with_fakes
 def test_strict():
-    raise nose.SkipTest() # this needs a little thinking before i really test it
     class MyDoc(Document):
+        __strict__ = True
         opt_field = Optional()
         req_field = Required()
 
-    fake_coll = fudge.Fake('coll').expects('save').with_args({'req_field': 'foo', 'extra_field': 'bar'})
-    _id = ObjectId()
-    fake_coll.returns(_id)
-
-    mydoc = MyDoc(collection=fake_coll)
+    mydoc = MyDoc(collection='not called')
     mydoc['req_field'] = 'foo'
     mydoc['extra_field'] = 'bar'
-    mydoc.save() # save
-    eq(mydoc['_id'], _id)
+    assert_raises(
+        ValidationError,
+        mydoc.save,
+        )
 
-def test_default_collection():
-    raise nose.SkipTest()
+def test_collection_class_attribute():
+    default_coll = fudge.Fake('coll').expects('save').with_args(
+        {'foo':'los angeles', 'bar':'portland'},
+        ).returns(ObjectId())
+    class MyDoc(Document):
+        __collection__ = default_coll
+
+    mydoc = MyDoc(
+        {'foo':'los angeles', 'bar':'portland'},
+        )
+    mydoc.save()
+
+def test_collection_passed_at_init():
+    init_passed_coll = fudge.Fake('coll').expects('save').with_args(
+        {'foo':'los angeles', 'bar':'portland'},
+        ).returns(ObjectId())
+    default_coll = 'Not called!'
+    class MyDoc(Document):
+        __collection__ = default_coll
+
+    mydoc = MyDoc(
+        {'foo':'los angeles', 'bar':'portland'},
+        collection=init_passed_coll,
+        )
+    mydoc.save()
+
+def test_collection_passed_at_save():
+    default_coll = 'Not called!'
+    init_passed_coll = 'Not called!'
+    save_passed_coll = fudge.Fake('coll').expects('save').with_args(
+        {'foo':'los angeles', 'bar':'portland'},
+        ).returns(ObjectId())
+
+    class MyDoc(Document):
+        __collection__ = default_coll
+
+    mydoc = MyDoc(
+        {'foo':'los angeles', 'bar':'portland'},
+        collection=init_passed_coll,
+        )
+
+    mydoc.save(collection=save_passed_coll)
+

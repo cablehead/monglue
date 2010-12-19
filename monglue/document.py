@@ -9,12 +9,18 @@ dict_fields = dir(dict)
 class Document(dict):
     """MongoDB document manager"""        
     def __init__(self, *a, **kw):
-        self._collection = kw.pop('collection', None)
+        self.__strict__ = getattr(self, '__strict__', False)
+        coll = kw.pop('collection', None)
+        if coll is None:
+            coll = getattr(self, '__collection__', None)
+        self._collection = coll
         self.__field_validators = {}
+        self.__fields = [] # hack
         killem = []
         for attr in dir(self.__class__):
             if isinstance(self.__getattribute__(attr), DocumentField):
                 self.__field_validators[attr] = self.__getattribute__(attr)._validator
+                self.__fields.append(attr)
                 # XXX how to delattr? keeps causing errors
         super(Document, self).__init__(*a, **kw)
 
@@ -35,6 +41,14 @@ class Document(dict):
             self['_id'] = _id
 
     def _validate(self):
+        if self.__strict__:
+            keys = set(self.keys())
+            fields = set(self.__fields)
+            if not keys.issubset(fields):
+                raise ValidationError(
+                    'Strict document - fields not allowed: %r' % list(keys-fields),
+                    )
+
         for key, validate in self.__field_validators.iteritems():
             if not validate(self, key):
                 raise ValidationError('%s required' % key)
