@@ -6,7 +6,6 @@ from monglue.document import Document
 
 class User(Document):
     __collection_name__ = 'users'
-
     def truncate_name(self):
         return '%s %s.' % (self['first_name'], self['last_name'][0])
 
@@ -29,3 +28,13 @@ class DoumentTest(unittest.TestCase):
         self.assertEqual(
             [u.truncate_name() for u in got],
             ['Andy G.', 'Daniel H.'])
+
+    def test_set(self):
+        u = User.new(self._db, {'first_name': 'Ted', 'last_name': 'Burns'})
+        _id = u['_id']
+        u.set(self._db, {'first_name': 'Ned'})
+        self.assertEqual(
+            u, {'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'})
+        self.assertEqual(
+            User.find(self._db),
+            [{'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'}])
