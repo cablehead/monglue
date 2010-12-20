@@ -5,3 +5,6 @@ class Document(dict):
         _id = c.insert(document)
         return klass(document)
 
+    @classmethod
+    def find(klass, database, spec=None):
+        return database[klass.__collection_name__].find(spec, as_class=klass)
