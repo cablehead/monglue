@@ -44,6 +44,15 @@ class PyMongoBaseTest(object):
         got.sort()
         self.assertEqual([x['name'] for x in got], ['a', 'b'])
 
+    def test_find_as_class(self):
+        class Klass(dict):
+            def foo(self):
+                return 'bar'
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        got = list(c.find(as_class=Klass))
+        self.assertTrue(isinstance(got[0], Klass))
+
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
@@ -75,11 +84,14 @@ class PyMongoCollectionStub(object):
         self.__documents__.append(document)
         return document['_id']
 
-    def find(self, spec=None):
+    def find(self, spec=None, as_class=None):
         #XXX(andy) - this should return a cursor
         if spec == None:
             spec = {}
-        return [x for x in self.__documents__ if self._match_spec(spec, x)]
+        ret = [x for x in self.__documents__ if self._match_spec(spec, x)]
+        if as_class:
+            ret = [as_class(x) for x in ret]
+        return ret
 
     def _match_spec(self, spec, row):
         for key in spec:
