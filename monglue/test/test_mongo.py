@@ -38,10 +38,10 @@ class PyMongoBaseTest(object):
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
-    Test that the base mongo test suite works against a real pymongo/MongoDB
+    Test that the PyMongoBaseTest suite works against a real pymongo/MongoDB
     instance.
 
-    Creating and removing Mongo Databases is pretty slow, so this integration
+    Creating and removing Mongo databases is pretty slow, so this integration
     suite reuses a common database.
     """
 
@@ -121,6 +121,9 @@ class PyMongoStub(object):
 
     
 class PyMongoStubTest(unittest.TestCase, PyMongoBaseTest):
+    """
+    Assert PyMongoStub matches the expected behavior of pymongo
+    """
     def get_collection(self):
         con = PyMongoStub()
         return con[str(uuid.uuid4())][str(uuid.uuid4())]
