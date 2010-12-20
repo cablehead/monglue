@@ -35,6 +35,15 @@ class PyMongoBaseTest(object):
         got = list(c.find())
         self.assertEqual(got, [{'_id': _id, 'foo': 'bar', 'abc': 125}])
 
+    def test_find(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = list(c.find({'age': 23}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['a', 'b'])
+
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
@@ -66,9 +75,11 @@ class PyMongoCollectionStub(object):
         self.__documents__.append(document)
         return document['_id']
 
-    def find(self):
+    def find(self, spec=None):
         #XXX(andy) - this should return a cursor
-        return self.__documents__
+        if spec == None:
+            spec = {}
+        return [x for x in self.__documents__ if self._match_spec(spec, x)]
 
     def _match_spec(self, spec, row):
         for key in spec:
