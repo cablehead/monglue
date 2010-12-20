@@ -46,8 +46,7 @@ class PyMongoBaseTest(object):
 
     def test_find_as_class(self):
         class Klass(dict):
-            def foo(self):
-                return 'bar'
+            pass
         c = self.get_collection()
         c.insert({'name': 'a', 'age': 23})
         got = list(c.find(as_class=Klass))
