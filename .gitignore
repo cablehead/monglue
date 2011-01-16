@@ -8,3 +8,6 @@
 _trial_temp
 .*.swp
 *.DS_Store*
+dist
+monglue.egg-info
+MANIFEST
