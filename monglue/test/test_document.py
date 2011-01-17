@@ -42,7 +42,7 @@ class DoumentTest(unittest.TestCase):
 
     def test_set(self):
         db = self._get_database()
-        u = User.new(db, {'first_name': 'Ted', 'last_name': 'Burns'})
+        u = UserStrict.new(db, {'first_name': 'Ted', 'last_name': 'Burns'})
         _id = u['_id']
         u.set(db, {'first_name': 'Ned'})
         self.assertEqual(

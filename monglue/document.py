@@ -21,7 +21,7 @@ def optional(document, field_name):
 def _validate(klass, document):
     if hasattr(klass, '__collection_fields__'):
         validators = klass.__collection_fields__
-        for key in document:
+        for key in [k for k in document if k != '_id']:
             if key not in validators:
                 raise ValidationError('Unknown field: %s' % key)
 
