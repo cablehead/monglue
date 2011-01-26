@@ -90,6 +90,36 @@ class PyMongoBaseTest(object):
         got = list(c.find(as_class=Klass))
         self.assertTrue(isinstance(got[0], Klass))
 
+    def test_remove_all(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.remove()
+        got = list(c.find())
+        got.sort()
+        self.assertEqual([x['name'] for x in got], [])
+
+    def test_remove_by_id(self):
+        c = self.get_collection()
+        _id = c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.remove(_id)
+        got = list(c.find())
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['b', 'c'])
+
+    def test_remove_by_spec(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.remove({'age': 23})
+        got = list(c.find())
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['c'])
+
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
@@ -129,6 +159,20 @@ class PyMongoCollectionStub(object):
         if as_class:
             ret = [as_class(x) for x in ret]
         return ret
+
+    def remove(self, spec_or_object_id=None):
+        if spec_or_object_id == None:
+            self.__documents__ = []
+            return
+
+        if isinstance(spec_or_object_id, bson.objectid.ObjectId):
+            self.__documents__ = [
+                x for x in self.__documents__ if x['_id'] != spec_or_object_id]
+            return
+
+        self.__documents__ = [
+            x for x in self.__documents__
+                if not self._match_spec(spec_or_object_id, x)]
 
     def _match_spec(self, spec, row):
         matchers = {
