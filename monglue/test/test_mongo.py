@@ -44,6 +44,44 @@ class PyMongoBaseTest(object):
         got.sort()
         self.assertEqual([x['name'] for x in got], ['a', 'b'])
 
+    def test_find_gt(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 20})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = list(c.find({'age': {'$gt': 21}}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['b', 'c'])
+
+    def test_find_lt(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 20})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = list(c.find({'age': {'$lt': 25}}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['a', 'b'])
+
+    def test_find_gte(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 20})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.insert({'name': 'd', 'age': 28})
+        got = list(c.find({'age': {'$gte': 23}}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['b', 'c', 'd'])
+
+    def test_find_lte(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 20})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.insert({'name': 'd', 'age': 28})
+        got = list(c.find({'age': {'$lte': 26}}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['a', 'b', 'c'])
+
     def test_find_as_class(self):
         class Klass(dict):
             pass
@@ -93,8 +131,23 @@ class PyMongoCollectionStub(object):
         return ret
 
     def _match_spec(self, spec, row):
+        matchers = {
+            '$gt': lambda x,y: x > y,
+            '$gte': lambda x,y: x >= y,
+            '$lt': lambda x,y: x < y,
+            '$lte': lambda x,y: x <= y,
+        }
         for key in spec:
-            if spec[key] != row[key]:
+            target = spec[key]
+            # for the moment assume the dict for advanced queries only have one
+            # item
+            if isinstance(target, dict) and target.keys()[0].startswith('$'):
+                matcher = matchers[target.keys()[0]]
+                target = target.values()[0]
+            else:
+                matcher = lambda x,y: x == y
+
+            if not matcher(row[key], target):
                 return False
         return True
 
