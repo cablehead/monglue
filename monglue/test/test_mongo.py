@@ -2,6 +2,7 @@ import unittest
 import pymongo
 import bson
 import uuid
+import re
 
 
 class Klass(dict):
@@ -91,6 +92,17 @@ class PyMongoBaseTest(object):
         c.insert({'name': 'a', 'age': 23})
         got = list(c.find(as_class=Klass))
         self.assertTrue(isinstance(got[0], Klass))
+
+    def test_find_regexp(self):
+        c = self.get_collection()
+        c.insert({'name': 'ToM', 'age': 23})
+        c.insert({'name': 'tom', 'age': 23})
+        c.insert({'name': 'Thomas', 'age': 23})
+        c.insert({'name': 'jack', 'age': 26})
+        pattern = re.compile('TOM', re.IGNORECASE)
+        got = list(c.find({'name': pattern}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['ToM', 'tom'])
 
     def test_find_one(self):
         c = self.get_collection()
@@ -227,6 +239,11 @@ class PyMongoCollectionStub(object):
                 if not self._match_spec(spec_or_object_id, x)]
 
     def _match_spec(self, spec, row):
+        def equals(source, target):
+            if isinstance(target, re._pattern_type):
+                return bool(re.search(target, source))
+            return source == target
+
         matchers = {
             '$gt': lambda x,y: x > y,
             '$gte': lambda x,y: x >= y,
@@ -241,7 +258,7 @@ class PyMongoCollectionStub(object):
                 matcher = matchers[target.keys()[0]]
                 target = target.values()[0]
             else:
-                matcher = lambda x,y: x == y
+                matcher = equals
 
             if not matcher(row[key], target):
                 return False
