@@ -40,6 +40,13 @@ class DoumentTest(unittest.TestCase):
         self.assertEqual(
             [u.truncate_name() for u in got], ['Andy G.', 'Daniel H.'])
 
+    def test_find_one(self):
+        db = self._get_database()
+        User.new(db, {'first_name': 'Daniel', 'last_name': 'Hengeveld'})
+        User.new(db, {'first_name': 'Andy', 'last_name': 'Gayton'})
+        got = User.find_one(db, {'first_name': 'Daniel'})
+        self.assertEqual(got.truncate_name(), 'Daniel H.')
+
     def test_set(self):
         db = self._get_database()
         u = UserStrict.new(db, {'first_name': 'Ted', 'last_name': 'Burns'})

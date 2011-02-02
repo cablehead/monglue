@@ -42,6 +42,10 @@ class Document(dict):
     def find(klass, database, spec=None):
         return database[klass.__collection_name__].find(spec, as_class=klass)
 
+    @classmethod
+    def find_one(klass, database, spec=None):
+        return database[klass.__collection_name__].find_one(spec, as_class=klass)
+
     def set(self, database, document):
         self.update(document)
         _validate(self, self)

@@ -4,6 +4,10 @@ import bson
 import uuid
 
 
+class Klass(dict):
+    pass
+
+
 class PyMongoBaseTest(object):
     """
     A base test suite which asserts an API provides sane pymongo behavior
@@ -83,12 +87,50 @@ class PyMongoBaseTest(object):
         self.assertEqual([x['name'] for x in got], ['a', 'b', 'c'])
 
     def test_find_as_class(self):
-        class Klass(dict):
-            pass
         c = self.get_collection()
         c.insert({'name': 'a', 'age': 23})
         got = list(c.find(as_class=Klass))
         self.assertTrue(isinstance(got[0], Klass))
+
+    def test_find_one(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = c.find_one()
+        self.assertEqual(got['name'], 'a')
+
+    def test_find_one_by_id(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        _id = c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = c.find_one(_id)
+        self.assertEqual(got['name'], 'b')
+
+    def test_find_one_by_spec(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = c.find_one({'name': 'c'})
+        self.assertEqual(got['name'], 'c')
+
+    def test_find_one_as_class(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = c.find_one(as_class=Klass)
+        self.assertTrue(isinstance(got, Klass))
+
+    def test_find_one_not_found(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        got = c.find_one({'name': 'd'})
+        self.assertEqual(got, None)
 
     def test_remove_all(self):
         c = self.get_collection()
@@ -159,6 +201,16 @@ class PyMongoCollectionStub(object):
         if as_class:
             ret = [as_class(x) for x in ret]
         return ret
+
+    def find_one(self, spec_or_id=None, *a, **kw):
+        if spec_or_id == None:
+            spec_or_id = {}
+        if isinstance(spec_or_id, bson.objectid.ObjectId):
+            spec_or_id = {'_id': spec_or_id}
+        found = self.find(spec_or_id, *a, **kw)
+        if not len(found):
+            return None
+        return found[0]
 
     def remove(self, spec_or_object_id=None):
         if spec_or_object_id == None:
