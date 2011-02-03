@@ -32,7 +32,9 @@ def _validate(klass, document):
 
 class Document(dict):
     @classmethod
-    def new(klass, database, document):
+    def new(klass, database, document=None):
+        if not document:
+            document = {}
         _validate(klass, document)
         c = database[klass.__collection_name__]
         _id = c.insert(document)
