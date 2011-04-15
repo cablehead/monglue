@@ -104,6 +104,22 @@ class PyMongoBaseTest(object):
         got.sort()
         self.assertEqual([x['name'] for x in got], ['ToM', 'tom'])
 
+    def test_find_allow_empty_fields(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'c'})
+        got = list(c.find({'age': 23}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['a'])
+
+    def test_find_match_on_empty_field(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'c'})
+        got = list(c.find({'age': None}))
+        got.sort()
+        self.assertEqual([x['name'] for x in got], ['c'])
+
     def test_find_one(self):
         c = self.get_collection()
         c.insert({'name': 'a', 'age': 23})
@@ -260,7 +276,7 @@ class PyMongoCollectionStub(object):
             else:
                 matcher = equals
 
-            if not matcher(row[key], target):
+            if not matcher(row.get(key), target):
                 return False
         return True
 
