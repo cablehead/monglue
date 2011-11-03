@@ -58,6 +58,13 @@ class DoumentTest(unittest.TestCase):
             User.find(db),
             [{'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'}])
 
+    def test_remove(self):
+        db = self._get_database()
+        u = UserStrict.new(db, {'first_name': 'Ted', 'last_name': 'Burns'})
+        u.remove(db)
+        got = User.find(db)
+        self.assertEqual(got, [])
+
     def test_validation(self):
         db = self._get_database()
         u = UserStrict.new(

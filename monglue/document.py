@@ -53,3 +53,6 @@ class Document(dict):
         _validate(self, self)
         return database[self.__collection_name__].update(
             {'_id': self['_id']}, {'$set': document})
+
+    def remove(self, database):
+        return database[self.__collection_name__].remove({'_id': self['_id']})
