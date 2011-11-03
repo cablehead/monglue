@@ -32,27 +32,38 @@ def _validate(klass, document):
 
 class Document(dict):
     @classmethod
-    def new(klass, database, document=None):
+    def new(klass, document=None):
         if not document:
             document = {}
         _validate(klass, document)
-        c = database[klass.__collection_name__]
+        c = klass.__database__[klass.__collection_name__]
         _id = c.insert(document)
         return klass(document)
 
     @classmethod
-    def find(klass, database, spec=None):
-        return database[klass.__collection_name__].find(spec, as_class=klass)
+    def find(klass, spec=None):
+        return klass.__database__[klass.__collection_name__].find(
+            spec, as_class=klass)
 
     @classmethod
-    def find_one(klass, database, spec=None):
-        return database[klass.__collection_name__].find_one(spec, as_class=klass)
+    def find_one(klass, spec=None):
+        return klass.__database__[klass.__collection_name__].find_one(
+            spec, as_class=klass)
 
-    def set(self, database, document):
+    def set(self, document):
         self.update(document)
         _validate(self, self)
-        return database[self.__collection_name__].update(
+        return self.__database__[self.__collection_name__].update(
             {'_id': self['_id']}, {'$set': document})
 
-    def remove(self, database):
-        return database[self.__collection_name__].remove({'_id': self['_id']})
+    def remove(self):
+        return self.__database__[self.__collection_name__].remove(
+            {'_id': self['_id']})
+
+
+class Bind(object):
+    def __init__(self, database, *Klasses):
+        for Klass in Klasses:
+            setattr(self,
+                Klass.__name__,
+                type(Klass.__name__, (Klass,), {'__database__': database}))
