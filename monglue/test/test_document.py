@@ -33,6 +33,12 @@ class DoumentTest(unittest.TestCase):
         self.assertEqual(u.truncate_name(), 'Daniel H.')
         self.assertTrue('_id' in u)
 
+    def test_a(self):
+        db = self._get_database()
+        data = {'first_name': 'Daniel', 'last_name': 'Hengeveld'}
+        u = db.User.new(data)
+        self.assertEqual(u.a, data)
+
     def test_find(self):
         db = self._get_database()
         db.User.new({'first_name': 'Daniel', 'last_name': 'Hengeveld'})

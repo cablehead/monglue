@@ -60,6 +60,11 @@ class Document(dict):
         return self.__database__[self.__collection_name__].remove(
             {'_id': self['_id']})
 
+    def __getattr__(self, name):
+        if name == 'a':
+            return dict(self)
+        raise AttributeError
+
 
 class Bind(object):
     def __init__(self, database, *Klasses):
