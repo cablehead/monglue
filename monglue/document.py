@@ -77,9 +77,10 @@ class Document(dict):
 
 
 class Bind(object):
-    def __init__(self, database, *Klasses):
+    def __init__(self, database, *Klasses, **kw):
+        self.store = kw.pop('store', self)
         for Klass in Klasses:
             setattr(self,
                 Klass.__name__,
                 type(Klass.__name__, (Klass,),
-                    {'__store__': self, '__database__': database}))
+                    {'x': self.store, '__database__': database}))
