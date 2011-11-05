@@ -81,4 +81,5 @@ class Bind(object):
         for Klass in Klasses:
             setattr(self,
                 Klass.__name__,
-                type(Klass.__name__, (Klass,), {'__database__': database}))
+                type(Klass.__name__, (Klass,),
+                    {'__store__': self, '__database__': database}))
