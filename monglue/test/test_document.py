@@ -73,6 +73,32 @@ class DoumentTest(unittest.TestCase):
             db.User.find(),
             [{'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'}])
 
+    def test_addToSet(self):
+        db = self._get_database()
+        u = db.User.new({'first_name': 'Ted', 'last_name': 'Burns'})
+        _id = u['_id']
+
+        u.addToSet({'permissions': 'read'})
+        self.assertEqual(u, {
+                '_id': _id,
+                'first_name': 'Ted',
+                'last_name': 'Burns',
+                'permissions': ['read']})
+
+        u.addToSet({'permissions': 'write'})
+        self.assertEqual(u, {
+                '_id': _id,
+                'first_name': 'Ted',
+                'last_name': 'Burns',
+                'permissions': ['read', 'write']})
+
+        self.assertEqual(
+            db.User.find(), [{
+                '_id': _id,
+                'first_name': 'Ted',
+                'last_name': 'Burns',
+                'permissions': ['read', 'write']}])
+
     def test_validation(self):
         db = self._get_database()
         u = db.UserStrict.new(

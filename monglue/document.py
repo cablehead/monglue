@@ -56,6 +56,16 @@ class Document(dict):
         return self.__database__[self.__collection_name__].update(
             {'_id': self['_id']}, {'$set': document})
 
+    def addToSet(self, document):
+        # XXX - this could reuse the pymongo stub code
+        for key in document:
+            if key not in self:
+                self[key] = []
+            self[key] = list(set(self[key]) | set([document[key]]))
+        _validate(self, self)
+        return self.__database__[self.__collection_name__].update(
+            {'_id': self['_id']}, {'$addToSet': document})
+
     def remove(self):
         return self.__database__[self.__collection_name__].remove(
             {'_id': self['_id']})
