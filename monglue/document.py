@@ -73,7 +73,7 @@ class Document(dict):
     def __getattr__(self, name):
         if name == 'a':
             return dict(self)
-        raise AttributeError
+        return super(dict, self).__getattr__(name)
 
 
 class Bind(object):
