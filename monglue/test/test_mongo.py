@@ -33,12 +33,16 @@ class PyMongoBaseTest(object):
 
     def test_update_inc(self):
         c = self.get_collection()
-        row = {'foo': 'bar', 'abc': 123}
+        row = {'foo': 'bar'}
         _id = c.insert(row)
-        c.update({'_id': _id}, {'$inc': {'abc': 2}})
 
+        c.update({'_id': _id}, {'$inc': {'abc': 2}})
         got = list(c.find())
-        self.assertEqual(got, [{'_id': _id, 'foo': 'bar', 'abc': 125}])
+        self.assertEqual(got, [{'_id': _id, 'foo': 'bar', 'abc': 2}])
+
+        c.update({'_id': _id}, {'$inc': {'abc': 3}})
+        got = list(c.find())
+        self.assertEqual(got, [{'_id': _id, 'foo': 'bar', 'abc': 5}])
 
     def test_update_addToSet(self):
         c = self.get_collection()
@@ -302,6 +306,8 @@ class PyMongoCollectionStub(object):
 
     def _inc(self, document, row):
         for key in document:
+            if key not in row:
+                row[key] = 0
             row[key] += document[key]
 
     def _addToSet(self, document, row):
