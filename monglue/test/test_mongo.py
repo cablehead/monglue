@@ -210,6 +210,16 @@ class PyMongoBaseTest(object):
         got.sort()
         self.assertEqual([x['name'] for x in got], ['c'])
 
+    def test_drop(self):
+        c = self.get_collection()
+        c.insert({'name': 'a', 'age': 23})
+        c.insert({'name': 'b', 'age': 23})
+        c.insert({'name': 'c', 'age': 26})
+        c.drop()
+        got = list(c.find())
+        got.sort()
+        self.assertEqual([x['name'] for x in got], [])
+
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
@@ -273,6 +283,9 @@ class PyMongoCollectionStub(object):
         self.__documents__ = [
             x for x in self.__documents__
                 if not self._match_spec(spec_or_object_id, x)]
+
+    def drop(self):
+        self.__documents__ = []
 
     def _match_spec(self, spec, row):
         def equals(source, target):

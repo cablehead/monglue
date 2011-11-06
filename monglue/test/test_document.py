@@ -74,6 +74,13 @@ class DoumentTest(unittest.TestCase):
         got = db.User.find()
         self.assertEqual(got, [])
 
+    def test_drop(self):
+        db = self._get_database()
+        u = db.User.new({'first_name': 'Ted', 'last_name': 'Burns'})
+        db.User.drop()
+        got = db.User.find()
+        self.assertEqual(got, [])
+
     def test_set(self):
         db = self._get_database()
         u = db.User.new({'first_name': 'Ted', 'last_name': 'Burns'})
