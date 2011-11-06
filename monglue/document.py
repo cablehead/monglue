@@ -73,7 +73,9 @@ class Document(dict):
     def __getattr__(self, name):
         if name == 'a':
             return dict(self)
-        return super(dict, self).__getattr__(name)
+        raise AttributeError, \
+            "exceptions.AttributeError: '%s' object has no attribute '%s'" % (
+                self.__class__.__name__, name)
 
 
 class Bind(object):

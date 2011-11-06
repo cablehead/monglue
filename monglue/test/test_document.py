@@ -39,6 +39,18 @@ class DoumentTest(unittest.TestCase):
         u = db.User.new(data)
         self.assertEqual(u.a, data)
 
+    def test_AttributeError(self):
+        db = self._get_database()
+        data = {'first_name': 'Daniel', 'last_name': 'Hengeveld'}
+        u = db.User.new(data)
+        self.assertRaises(AttributeError, getattr, u, 'foo')
+        try:
+            u.foo
+        except AttributeError, e:
+            self.assertEqual(
+                str(e),
+                "exceptions.AttributeError: 'User' object has no attribute 'foo'")
+
     def test_find(self):
         db = self._get_database()
         db.User.new({'first_name': 'Daniel', 'last_name': 'Hengeveld'})
