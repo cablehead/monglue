@@ -40,8 +40,11 @@ class Document(object):
         _id = c.insert(document)
         return klass(document)
 
-    def __init__(self, document):
-        self.a = document
+    def __setitem__(self, key, value):
+        self.a[key] = value
+
+    def __init__(self, document=None):
+        self.a = document or {}
 
     @classmethod
     def find(klass, spec=None):
