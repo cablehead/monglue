@@ -30,7 +30,7 @@ def _validate(klass, document):
                 raise ValidationError('Validation failed for: %s' % key)
 
 
-class Document(dict):
+class Document(object):
     @classmethod
     def new(klass, document=None):
         if not document:
@@ -39,6 +39,9 @@ class Document(dict):
         c = klass.__database__[klass.__collection_name__]
         _id = c.insert(document)
         return klass(document)
+
+    def __init__(self, document):
+        self.a = document
 
     @classmethod
     def find(klass, spec=None):
@@ -51,35 +54,28 @@ class Document(dict):
             spec, as_class=klass)
 
     def set(self, document):
-        self.update(document)
-        _validate(self, self)
+        self.a.update(document)
+        _validate(self, self.a)
         return self.__database__[self.__collection_name__].update(
-            {'_id': self['_id']}, {'$set': document})
+            {'_id': self.a['_id']}, {'$set': document})
 
     def addToSet(self, document):
         # XXX - this could reuse the pymongo stub code
         for key in document:
-            if key not in self:
-                self[key] = []
-            self[key] = list(set(self[key]) | set([document[key]]))
-        _validate(self, self)
+            if key not in self.a:
+                self.a[key] = []
+            self.a[key] = list(set(self.a[key]) | set([document[key]]))
+        _validate(self, self.a)
         return self.__database__[self.__collection_name__].update(
-            {'_id': self['_id']}, {'$addToSet': document})
+            {'_id': self.a['_id']}, {'$addToSet': document})
 
     def remove(self):
         return self.__database__[self.__collection_name__].remove(
-            {'_id': self['_id']})
+            {'_id': self.a['_id']})
 
     @classmethod
     def drop(self):
         return self.__database__[self.__collection_name__].drop()
-
-    def __getattr__(self, name):
-        if name == 'a':
-            return dict(self)
-        raise AttributeError, \
-            "exceptions.AttributeError: '%s' object has no attribute '%s'" % (
-                self.__class__.__name__, name)
 
 
 class Bind(object):

@@ -11,7 +11,7 @@ from monglue.document import ValidationError
 class User(Document):
     __collection_name__ = 'users'
     def truncate_name(self):
-        return '%s %s.' % (self['first_name'], self['last_name'][0])
+        return '%s %s.' % (self.a['first_name'], self.a['last_name'][0])
 
 
 class UserStrict(User):
@@ -31,32 +31,14 @@ class DoumentTest(unittest.TestCase):
         db = self._get_database()
         u = db.User.new({'first_name': 'Daniel', 'last_name': 'Hengeveld'})
         self.assertEqual(u.truncate_name(), 'Daniel H.')
-        self.assertTrue('_id' in u)
-
-    def test_a(self):
-        db = self._get_database()
-        data = {'first_name': 'Daniel', 'last_name': 'Hengeveld'}
-        u = db.User.new(data)
-        self.assertEqual(u.a, data)
-
-    def test_AttributeError(self):
-        db = self._get_database()
-        data = {'first_name': 'Daniel', 'last_name': 'Hengeveld'}
-        u = db.User.new(data)
-        self.assertRaises(AttributeError, getattr, u, 'foo')
-        try:
-            u.foo
-        except AttributeError, e:
-            self.assertEqual(
-                str(e),
-                "exceptions.AttributeError: 'User' object has no attribute 'foo'")
+        self.assertTrue('_id' in u.a)
 
     def test_find(self):
         db = self._get_database()
         db.User.new({'first_name': 'Daniel', 'last_name': 'Hengeveld'})
         db.User.new({'first_name': 'Andy', 'last_name': 'Gayton'})
         got = db.User.find()
-        got.sort(lambda x,y: cmp(x['first_name'], y['first_name']))
+        got.sort(lambda x,y: cmp(x.a['first_name'], y.a['first_name']))
         self.assertEqual(
             [u.truncate_name() for u in got], ['Andy G.', 'Daniel H.'])
 
@@ -84,35 +66,35 @@ class DoumentTest(unittest.TestCase):
     def test_set(self):
         db = self._get_database()
         u = db.User.new({'first_name': 'Ted', 'last_name': 'Burns'})
-        _id = u['_id']
+        _id = u.a['_id']
         u.set({'first_name': 'Ned'})
         self.assertEqual(
-            u, {'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'})
+            u.a, {'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'})
         self.assertEqual(
-            db.User.find(),
+            [x.a for x in db.User.find()],
             [{'_id': _id, 'first_name': 'Ned', 'last_name': 'Burns'}])
 
     def test_addToSet(self):
         db = self._get_database()
         u = db.User.new({'first_name': 'Ted', 'last_name': 'Burns'})
-        _id = u['_id']
+        _id = u.a['_id']
 
         u.addToSet({'permissions': 'read'})
-        self.assertEqual(u, {
+        self.assertEqual(u.a, {
                 '_id': _id,
                 'first_name': 'Ted',
                 'last_name': 'Burns',
                 'permissions': ['read']})
 
         u.addToSet({'permissions': 'write'})
-        self.assertEqual(u, {
+        self.assertEqual(u.a, {
                 '_id': _id,
                 'first_name': 'Ted',
                 'last_name': 'Burns',
                 'permissions': ['read', 'write']})
 
         self.assertEqual(
-            db.User.find(), [{
+            [x.a for x in db.User.find()], [{
                 '_id': _id,
                 'first_name': 'Ted',
                 'last_name': 'Burns',
