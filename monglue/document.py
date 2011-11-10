@@ -48,7 +48,7 @@ class Document(object):
         if indexes:
             for key, options in indexes:
                 klass.ensure_index(key, **options)
-        return object.__new__(klass, *a, **kw)
+        return object.__new__(klass)
 
     def __init__(self, document=None):
         self.a = document or {}
