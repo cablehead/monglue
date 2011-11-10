@@ -1,5 +1,7 @@
 import unittest
 
+import pymongo
+
 from monglue.test.test_mongo import PyMongoStub
 from monglue.document import Document
 from monglue.document import Bind
@@ -20,6 +22,12 @@ class UserStrict(User):
         'last_name': required,
         'age': optional,
     }
+    __collection_indexes__ = [
+        ([
+            ('last_name', pymongo.DESCENDING),
+            ('first_name', pymongo.ASCENDING),
+        ], {'sparse': True})
+    ]
 
 
 class DoumentTest(unittest.TestCase):
@@ -124,3 +132,15 @@ class DoumentTest(unittest.TestCase):
         self.assertRaises(
             ValidationError,
             u.set, {'address': '915 Hampshire St, San Francisco'})
+
+    def test_indexes(self):
+        db = self._get_database()
+        u = db.UserStrict.new(
+            {'first_name': 'Daniel', 'last_name': 'Hengeveld'})
+        index = u.index_information()
+        self.assertEqual(
+            index['last_name_-1_first_name_1'],
+            {
+                'key': [('last_name', -1), ('first_name', 1)],
+                'sparse': True,
+                'v': 1})

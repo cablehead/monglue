@@ -220,6 +220,29 @@ class PyMongoBaseTest(object):
         got.sort()
         self.assertEqual([x['name'] for x in got], [])
 
+    def test_indexes(self):
+        c = self.get_collection()
+        self.assertEqual(c.index_information(), {})
+
+        name = c.ensure_index(
+            [('name', pymongo.ASCENDING), ('age', pymongo.DESCENDING)])
+        self.assertEqual(name, 'name_1_age_-1')
+        want = {
+            '_id_': {'key': [('_id', 1)], 'v': 1},
+            'name_1_age_-1': {'key': [('name', 1), ('age', -1)], 'v': 1},}
+        got = c.index_information()
+        self.assertEqual(got, want)
+
+        # stub should ensure unique-ness on write
+        name = c.ensure_index(
+            [('name', pymongo.ASCENDING), ('status', pymongo.DESCENDING)],
+            unique=True)
+        self.assertEqual(name, 'name_1_status_-1')
+        want['name_1_status_-1'] = {
+            'unique': True, 'key': [('name', 1), ('status', -1)], 'v': 1}
+        got = c.index_information()
+        self.assertEqual(got, want)
+
 
 class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
     """
@@ -245,6 +268,7 @@ class PyMongoIntegrationTest(unittest.TestCase, PyMongoBaseTest):
 class PyMongoCollectionStub(object):
     def __init__(self):
         self.__documents__ = []
+        self.__indexes__ = {}
 
     def insert(self, document):
         document['_id'] = bson.objectid.ObjectId()
@@ -286,6 +310,18 @@ class PyMongoCollectionStub(object):
 
     def drop(self):
         self.__documents__ = []
+
+    def index_information(self):
+        return self.__indexes__
+
+    def ensure_index(self, key, **kw):
+        name = ''
+        name = '_'.join(['%s_%s' % item for item in key])
+        if not self.__indexes__:
+            self.__indexes__['_id_'] = {'key': [('_id', 1)], 'v': 1}
+        self.__indexes__[name] = {'key': key, 'v': 1}
+        self.__indexes__[name].update(kw)
+        return name
 
     def _match_spec(self, spec, row):
         def equals(source, target):

@@ -43,6 +43,13 @@ class Document(object):
     def __setitem__(self, key, value):
         self.a[key] = value
 
+    def __new__(klass, *a, **kw):
+        indexes = getattr(klass, '__collection_indexes__', None)
+        if indexes:
+            for key, options in indexes:
+                klass.ensure_index(key, **options)
+        return object.__new__(klass, *a, **kw)
+
     def __init__(self, document=None):
         self.a = document or {}
 
@@ -79,6 +86,15 @@ class Document(object):
     @classmethod
     def drop(self):
         return self.__database__[self.__collection_name__].drop()
+
+    @classmethod
+    def index_information(klass):
+        return klass.__database__[klass.__collection_name__].index_information()
+
+    @classmethod
+    def ensure_index(klass, key, **options):
+        return klass.__database__[klass.__collection_name__].ensure_index(
+            key, **options)
 
 
 class Bind(object):
