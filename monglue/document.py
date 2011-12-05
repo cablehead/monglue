@@ -96,10 +96,14 @@ class Document(object):
         return klass.__database__[klass.__collection_name__].ensure_index(
             key, **options)
 
+    def __repr__(self):
+        return repr(self.a)
+
 
 class Bind(object):
     def __init__(self, database, *Klasses, **kw):
         self.store = kw.pop('store', self)
+        self.__database__ = database
         for Klass in Klasses:
             setattr(self,
                 Klass.__name__,
