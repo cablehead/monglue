@@ -52,6 +52,9 @@ class Document(object):
 
     def __init__(self, document=None):
         self.a = document or {}
+        # it's not intuitive that calling drop on an instance will actually
+        # drop the entire collection
+        self.drop = self.__drop
 
     @classmethod
     def find(klass, spec=None):
@@ -84,8 +87,11 @@ class Document(object):
             {'_id': self.a['_id']})
 
     @classmethod
-    def drop(self):
-        return self.__database__[self.__collection_name__].drop()
+    def drop(klass):
+        return klass.__database__[klass.__collection_name__].drop()
+
+    def __drop(self):
+        raise AssertionError('can only be called a a class method')
 
     @classmethod
     def index_information(klass):
