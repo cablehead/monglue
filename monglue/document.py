@@ -91,7 +91,7 @@ class Document(object):
         return klass.__database__[klass.__collection_name__].drop()
 
     def __drop(self):
-        raise AssertionError('can only be called a a class method')
+        raise AssertionError('can only be called on a class method')
 
     @classmethod
     def index_information(klass):
