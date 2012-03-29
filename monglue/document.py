@@ -72,6 +72,12 @@ class Document(object):
         return self.__database__[self.__collection_name__].update(
             {'_id': self.a['_id']}, {'$set': document})
 
+    def unset(self, document):
+        self.a.update(document)
+        _validate(self, self.a)
+        return self.__database__[self.__collection_name__].update(
+            {'_id': self.a['_id']}, {'$unset': document})
+
     def addToSet(self, document):
         # XXX - this could reuse the pymongo stub code
         for key in document:
