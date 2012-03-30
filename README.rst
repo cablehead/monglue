@@ -14,6 +14,8 @@ Features
 
 Built in connection auto reconnect.
 
+Connections default to safe mode.  It's easy to set common connection defaults.
+
 Normalizing pymongo method names, so they aren't special cased for the given
 instance type you are working with. This is useful in tests, as you can pass a
 sub-collection for your tests to use, and it can treat the sub-collection as
