@@ -56,6 +56,9 @@ class Document(object):
         # drop the entire collection
         self.drop = self.__drop
 
+    def refresh(self):
+        self.a = self.find_one(self.a['_id'])
+
     @classmethod
     def find(klass, spec=None):
         return klass.__database__[klass.__collection_name__].find(
