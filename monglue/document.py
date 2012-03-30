@@ -57,7 +57,7 @@ class Document(object):
         self.drop = self.__drop
 
     def refresh(self):
-        self.a = self.find_one(self.a['_id'])
+        self.a = self.find_one(self.a['_id']).a
 
     @classmethod
     def find(klass, spec=None):
