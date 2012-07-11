@@ -82,6 +82,11 @@ class AutoReconnectConnection(object):
                         if x.startswith(self.__target.name+'.')]
         return self.__target.collection_names()
 
+    def drop(self):
+        if isinstance(self.__target, pymongo.database.Database):
+            return self.__target.connection.drop_database(self.__target.name)
+        return self.__target.drop()
+
     def __getattr__(self, name):
         ob = getattr(self.__target, name, None)
         if ob == None or isinstance(ob, pymongo.collection.Collection):

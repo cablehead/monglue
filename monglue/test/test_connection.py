@@ -41,3 +41,14 @@ class ConnectionTest(unittest.TestCase):
         # test sub collections
         self.assertEqual(
             c[dbname]['collection'].names(), ['subcollection'])
+
+    def test_drop(self):
+        dbname = uuid.uuid4().hex
+        c = connection.Connection()
+        c[dbname]['collection'].save({})
+
+        c[dbname]['collection'].drop()
+        self.assertFalse('collection' in c[dbname].collection_names())
+
+        c[dbname].drop()
+        self.assertFalse(dbname in c.database_names())
